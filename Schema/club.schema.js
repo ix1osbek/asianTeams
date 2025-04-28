@@ -1,14 +1,22 @@
-const { Schema, default: mongoose } = require("mongoose")
+const { Schema, model, Types } = require("mongoose")
 
 const ClubSchema = new Schema({
+    league: {
+        type: Types.ObjectId,
+        ref: "League", 
+        required: [true, "Ligani kiritish majburiy!"]
+    },
     title: {
         type: String,
-        unique: [true, "Bunday jamoa bazada mavjud!"],
+        required: [true, "Jamoa nomi majburiy!"],
+        unique: true,
         trim: true,
-        maxlength: [170, "Jamoa nomi 170 ta belgidan oshmasligi kerak"],
+        maxlength: [170, "Jamoa nomi 170 belgidan oshmasligi kerak"],
     }
-}, { versionKey: false, timestamps: true })
+}, { 
+    versionKey: false, 
+    timestamps: true 
+})
 
-
-const ClubModel = mongoose.model("Clubs" , ClubSchema)
+const ClubModel = model("Club", ClubSchema)
 module.exports = ClubModel

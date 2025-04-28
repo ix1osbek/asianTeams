@@ -1,20 +1,28 @@
-const LeagueModels = require("../Schema/league.chema.js")
+const LeagueModels = require("../Schema/league.chema.js");
 
 /////////// POST League
 const createLeague = async (req, res) => {
     try {
-        const { title, descriptions } = req.body
-        const existengTitle = await LeagueModels.findOne({ title });
-        if (existengTitle) {
+        const { league, descriptions } = req.body;
+
+        if (!league) {
             return res.status(400).json({
-                message: "Bunday League mavjud!"
+                message: "League nomi majburiy!"
             });
         }
-        const league = await LeagueModels.create({ title, descriptions });
+
+        const existingLeague = await LeagueModels.findOne({ league });
+        if (existingLeague) {
+            return res.status(400).json({
+                message: "Bunday League allaqachon mavjud!"
+            });
+        }
+
+        const newLeague = await LeagueModels.create({ league, descriptions });
 
         res.status(201).json({
             message: "League muvaffaqiyatli yaratildi!",
-            data: league
+            data: newLeague
         });
     } catch (error) {
         console.error(error);
@@ -23,22 +31,20 @@ const createLeague = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
-
-
-//////////////// get leagues
-
+//////////////// GET all Leagues
 const getLeague = async (req, res) => {
     try {
-        const foundetLeague = await LeagueModels.find()
-        if (foundetLeague.length === 0) {
+        const leagues = await LeagueModels.find();
+
+        if (leagues.length === 0) {
             return res.status(404).json({
                 message: "Leaguelar topilmadi!"
-            })
+            });
         }
 
-        res.status(200).json(foundetLeague)
+        res.status(200).json(leagues);
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -46,25 +52,21 @@ const getLeague = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
-
-
-///////// get one league
-
+///////// GET one League
 const getOneLeague = async (req, res) => {
     try {
+        const league = await LeagueModels.findById(req.params.id)
+            .populate('clubs'); // <<=== Qo‘shdik!
 
-        const foundetLeague = await LeagueModels.findById(req.params.id)
-        if (!foundetLeague) {
+        if (!league) {
             return res.status(404).json({
                 message: "League topilmadi!"
-            })
+            });
         }
 
-        res.status(200).json({
-            foundetLeague
-        })
+        res.status(200).json(league);
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -75,23 +77,36 @@ const getOneLeague = async (req, res) => {
 }
 
 
-//////// update league
-
+//////// UPDATE League
 const updateLeague = async (req, res) => {
     try {
-        const foundetTitle = await LeagueModels.findOne({ title: req.body.title })
+        const { id } = req.params;
+        const { league, descriptions } = req.body;
 
-        if (foundetTitle) {
-            return res.status(404).json({
-                message: "Bu League bazada mavjud!"
-            })
+        const existingLeague = await LeagueModels.findOne({ league });
+
+        if (existingLeague && existingLeague._id.toString() !== id) {
+            return res.status(400).json({
+                message: "Bunday League allaqachon mavjud!"
+            });
         }
 
-        const { id } = req.params.id
-        await LeagueModels.findByIdAndUpdate(id, req.body, { new: true, runValidators: true, upsert: true })
+        const updatedLeague = await LeagueModels.findByIdAndUpdate(
+            id,
+            { league, descriptions },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedLeague) {
+            return res.status(404).json({
+                message: "League topilmadi!"
+            });
+        }
+
         res.status(200).json({
-            message: `League yangilandi!`,
-        })
+            message: "League muvaffaqiyatli yangilandi!",
+            data: updatedLeague
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -99,27 +114,24 @@ const updateLeague = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
-
-
-
-/////////// delete league
-
+/////////// DELETE League
 const deleteLeague = async (req, res) => {
     try {
-        const { id } = req.params
-        const foundetLeague = await LeagueModels.findById(id)
-        if(!foundetLeague){
-            return res.status().json({
+        const { id } = req.params;
+
+        const league = await LeagueModels.findByIdAndDelete(id);
+
+        if (!league) {
+            return res.status(404).json({
                 message: "Bunday League topilmadi!"
-            })
+            });
         }
 
-        await LeagueModels.findByIdAndDelete(id)
         res.status(200).json({
-            message: `League o'chirildi! `
-          })
+            message: "League muvaffaqiyatli o'chirildi!"
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -127,7 +139,7 @@ const deleteLeague = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 module.exports = {
     createLeague,
@@ -135,4 +147,4 @@ module.exports = {
     getOneLeague,
     updateLeague,
     deleteLeague
-}
+};

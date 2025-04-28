@@ -1,22 +1,31 @@
-const mongoose = require("mongoose")
-
-const Schema = mongoose.Schema
+const { Schema, model } = require("mongoose")
 
 const LeagueSchema = new Schema({
-    title: {
+    league: {
         type: String,
-        unique: [true, "League nomi takrorlanmasligi shart!"],
-        required: [true, "Liga nomi majburiy"],
+        required: [true, "League nomi majburiy!"],
+        unique: true,
         trim: true,
-        maxlength: [100, "Liga nomi 100 ta belgidan oshmasligi kerak"],
+        maxlength: [170, "League nomi 170 belgidan oshmasligi kerak"],
     },
     descriptions: {
         type: String,
-        required: [true, "Description kiritish majburiy!"],
-        maxlength: [500, "Description 500 ta belgidan oshmasligi kerak"]
+        trim: true,
+        maxlength: [500, "League tavsifi 500 belgidan oshmasligi kerak"]
     }
+}, { 
+    versionKey: false,
+    timestamps: true,
+    toJSON: { virtuals: true },   
+    toObject: { virtuals: true }  
+})
 
-} , {versionKey: false , timestamps: true})
+// === VIRTUAL Qo'shamiz ===
+LeagueSchema.virtual('clubs', {
+    ref: 'Club',                  
+    localField: '_id',            
+    foreignField: 'league',       
+})
 
-const LeagueModel = mongoose.model("leagues" , LeagueSchema)
+const LeagueModel = model("League", LeagueSchema)
 module.exports = LeagueModel

@@ -1,52 +1,59 @@
 const ClubModel = require("../Schema/club.schema.js")
 
-
 ////////// add club
 
 const createClub = async (req, res) => {
     try {
-        const { title } = req.body
-        const foundetTitle = await ClubModel.findOne({ title })
-        if (foundetTitle) {
-            return res.status(404).json({
+        const { title, league } = req.body
+        if (!title || !league) {
+            return res.status(400).json({
+                message: "Title va League ID majburiy!"
+            })
+        }
+
+        const existingClub = await ClubModel.findOne({ title })
+        if (existingClub) {
+            return res.status(400).json({
                 message: "Bu club bazada mavjud!"
             })
         }
-        const club = await ClubModel.create({ title })
+
+        const club = await ClubModel.create({ title, league })
 
         res.status(201).json({
-            message: `Yangi club qo'shildi:`, club
+            message: `Yangi club qo'shildi`,
+            data: club
         })
 
-
     } catch (error) {
-        console.error(error);
+        console.error(error)
         res.status(500).json({
             message: "Serverda xatolik yuz berdi",
             error: error.message
-        });
+        })
     }
 }
 
 
-/////// get clubs
+/////// get all clubs
 
 const getClubs = async (req, res) => {
     try {
-        const foundetTitle = await ClubModel.find()
-        if (foundetTitle.length === 0) {
+        const clubs = await ClubModel.find().populate("league") // league (kichik harf)
+
+        if (clubs.length === 0) {
             return res.status(404).json({
                 message: "Clublar topilmadi!"
             })
         }
 
-        res.status(200).json(foundetTitle)
+        res.status(200).json(clubs)
     } catch (error) {
-        console.error(error);
+        console.error(error)
         res.status(500).json({
             message: "Serverda xatolik yuz berdi",
             error: error.message
-        });
+        })
     }
 }
 
@@ -55,21 +62,22 @@ const getClubs = async (req, res) => {
 
 const oneClub = async (req, res) => {
     try {
-        const id = req.params.id
-        const foundetClub = await ClubModel.findById(id)
-        if (!foundetClub) {
+        const { id } = req.params
+        const club = await ClubModel.findById(id).populate("league")
+
+        if (!club) {
             return res.status(404).json({
                 message: "Bunday club bazada mavjud emas!"
             })
         }
 
-        res.status(200).json(foundetClub)
+        res.status(200).json(club)
     } catch (error) {
-        console.error(error);
+        console.error(error)
         res.status(500).json({
             message: "Serverda xatolik yuz berdi",
             error: error.message
-        });
+        })
     }
 }
 
@@ -77,54 +85,68 @@ const oneClub = async (req, res) => {
 ///////////// update club
 
 const updateClub = async (req, res) => {
-try {
-    const id = req.params.id
-    const title = req.body
-    const foundetTitle = await ClubModel.findOne({ title: req.body.title })
+    try {
+        const { id } = req.params
+        const { title, league } = req.body
 
-    if (foundetTitle) {
-        return res.status(400).json({
-            message: "Bunday club bazada mavjud. Club nomlari takrorlanmasligi shart!"
+        // Tekshir: title unikalmi
+        if (title) {
+            const existingClub = await ClubModel.findOne({ title })
+            if (existingClub && existingClub._id.toString() !== id) {
+                return res.status(400).json({
+                    message: "Bunday club nomi allaqachon mavjud!"
+                })
+            }
+        }
+
+        const updatedClub = await ClubModel.findByIdAndUpdate(
+            id,
+            { title, league },
+            { new: true, runValidators: true }
+        )
+
+        if (!updatedClub) {
+            return res.status(404).json({
+                message: "Club topilmadi!"
+            })
+        }
+
+        res.status(200).json({
+            message: "Club yangilandi!",
+            data: updatedClub
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({
+            message: "Serverda xatolik yuz berdi",
+            error: error.message
         })
     }
-    await ClubModel.findByIdAndUpdate(id, title, { new: true, runValidators: true, upsert: true })
-    res.status(201).json({
-        message: "Malumotlar yangilandi!"
-    })
-} catch (error) {
-    console.error(error);
-    res.status(500).json({
-        message: "Serverda xatolik yuz berdi",
-        error: error.message
-    });
-}
 }
 
 
 //////////// delete club
 
-const deleteClub = async (req , res)=>{
+const deleteClub = async (req, res) => {
     try {
-        const id = req.params.id
-        const foundetClub = await ClubModel.findById(id)
-        if(!foundetClub){
+        const { id } = req.params
+        const club = await ClubModel.findByIdAndDelete(id)
+
+        if (!club) {
             return res.status(404).json({
-                message: "Bunday club bazada topilmadi!"
+                message: "Bunday club topilmadi!"
             })
         }
 
-        await ClubModel.findByIdAndDelete(id)
-
         res.status(200).json({
-            message: "Club muvofaqiyatli o'chirildi!"
+            message: "Club o'chirildi!"
         })
-        
     } catch (error) {
-        console.error(error);
+        console.error(error)
         res.status(500).json({
             message: "Serverda xatolik yuz berdi",
             error: error.message
-        });
+        })
     }
 }
 
