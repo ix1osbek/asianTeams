@@ -3,7 +3,7 @@ const { Schema, model, Types } = require("mongoose")
 const ClubSchema = new Schema({
     league: {
         type: Types.ObjectId,
-        ref: "League", 
+        ref: "League",
         required: [true, "Ligani kiritish majburiy!"]
     },
     title: {
@@ -12,10 +12,11 @@ const ClubSchema = new Schema({
         unique: true,
         trim: true,
         maxlength: [170, "Jamoa nomi 170 belgidan oshmasligi kerak"],
-    }
-}, { 
-    versionKey: false, 
-    timestamps: true 
+    },
+    logo: { type: String, required: true }
+}, {
+    versionKey: false,
+    timestamps: true
 })
 
 const ClubModel = model("Club", ClubSchema)

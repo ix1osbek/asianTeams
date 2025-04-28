@@ -1,15 +1,19 @@
 const ClubModel = require("../Schema/club.schema.js")
+const uploadToImgBB = require('../utils/uploadToImgBB.js')
+
 
 ////////// add club
 
 const createClub = async (req, res) => {
     try {
         const { title, league } = req.body
-        if (!title || !league) {
+        const logoFile = req.file
+        if (!title || !league || !logoFile) {
             return res.status(400).json({
-                message: "Title va League ID majburiy!"
+                message: "Title, League ID va Logo majburiy!"
             })
-        }
+        }   
+        const logoUrl = await uploadToImgBB(logoFile)
 
         const existingClub = await ClubModel.findOne({ title })
         if (existingClub) {
@@ -18,7 +22,7 @@ const createClub = async (req, res) => {
             })
         }
 
-        const club = await ClubModel.create({ title, league })
+        const club = await ClubModel.create({ title, league, logo: logoUrl })
 
         res.status(201).json({
             message: `Yangi club qo'shildi`,
@@ -35,11 +39,12 @@ const createClub = async (req, res) => {
 }
 
 
+
 /////// get all clubs
 
 const getClubs = async (req, res) => {
     try {
-        const clubs = await ClubModel.find().populate("league") // league (kichik harf)
+        const clubs = await ClubModel.find().populate("league") 
 
         if (clubs.length === 0) {
             return res.status(404).json({
@@ -87,9 +92,10 @@ const oneClub = async (req, res) => {
 const updateClub = async (req, res) => {
     try {
         const { id } = req.params
+        
         const { title, league } = req.body
-
-        // Tekshir: title unikalmi
+        const logoFile = req.file
+        console.log(logoFile)
         if (title) {
             const existingClub = await ClubModel.findOne({ title })
             if (existingClub && existingClub._id.toString() !== id) {
@@ -98,10 +104,11 @@ const updateClub = async (req, res) => {
                 })
             }
         }
+        const logoUrl = await uploadToImgBB(logoFile)
 
         const updatedClub = await ClubModel.findByIdAndUpdate(
             id,
-            { title, league },
+            { league, title  , logo: logoUrl},
             { new: true, runValidators: true }
         )
 
