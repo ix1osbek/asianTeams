@@ -12,19 +12,19 @@ const LeagueSchema = new Schema({
         type: String,
         trim: true,
         maxlength: [500, "League tavsifi 500 belgidan oshmasligi kerak"]
-    }
-}, { 
+    },
+    logo: { type: String, required: true }
+}, {
     versionKey: false,
     timestamps: true,
-    toJSON: { virtuals: true },   
-    toObject: { virtuals: true }  
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 })
 
-// === VIRTUAL Qo'shamiz ===
 LeagueSchema.virtual('clubs', {
-    ref: 'Club',                  
-    localField: '_id',            
-    foreignField: 'league',       
+    ref: 'Club',
+    localField: '_id',
+    foreignField: 'league',
 })
 
 const LeagueModel = model("League", LeagueSchema)

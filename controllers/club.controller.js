@@ -95,7 +95,6 @@ const updateClub = async (req, res) => {
         
         const { title, league } = req.body
         const logoFile = req.file
-        console.log(logoFile)
         if (title) {
             const existingClub = await ClubModel.findOne({ title })
             if (existingClub && existingClub._id.toString() !== id) {
