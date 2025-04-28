@@ -3,12 +3,14 @@ const cors = require('cors')
 require('dotenv').config()
 const connectDB = require("./config/db.js")
 const Roterleague = require("./routes/league.routes.js")
+const clubRouter = require('./routes/club.routes.js')
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 connectDB()
 app.use(Roterleague)
+app.use(clubRouter)
 
 const PORT = process.env.PORT || 3003
 app.listen(PORT , ()=>{
