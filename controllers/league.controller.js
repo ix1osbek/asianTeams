@@ -99,7 +99,7 @@ const updateLeague = async (req, res) => {
 
         const updatedLeague = await LeagueModels.findByIdAndUpdate(
             id,
-            { league, descriptions , logo: imgUrl },
+            { league, descriptions, logo: imgUrl },
             { new: true, runValidators: true }
         )
 
@@ -134,7 +134,6 @@ const deleteLeague = async (req, res) => {
                 message: "Bunday League topilmadi!"
             })
         }
-
         res.status(200).json({
             message: "League muvaffaqiyatli o'chirildi!"
         })
